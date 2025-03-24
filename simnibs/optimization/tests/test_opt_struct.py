@@ -1197,7 +1197,8 @@ class TestTDCSDistributedoptimize:
     @pytest.mark.parametrize('max_ac', [None, 3])
     def test_optimize(self, intensity, max_el_c, max_tot_c, max_ac, fn_surf_real):
 
-        target_img = np.random.rand(100, 100, 100)
+        rng = np.random.default_rng(1)
+        target_img = rng.random(size=(100,100,100))
         affine = np.eye(4)
         affine[:3, 3] = -100
         affine[:3, :3] *= 2
@@ -1215,10 +1216,8 @@ class TestTDCSDistributedoptimize:
 
         currents = p.optimize()
         assert np.isclose(np.sum(currents), 0, atol=1e-6)
-        if max_el_c is not None:
-            assert np.max(np.abs(currents)) < max_el_c * 1.05
-        if max_tot_c is not None:
-            assert np.linalg.norm(currents, 1) < 2 * max_tot_c * 1.05
+        assert np.max(np.abs(currents)) < max_el_c * 1.05
+        assert np.linalg.norm(currents, 1) < 2 * max_tot_c * 1.05
         if max_ac is not None:
             assert np.linalg.norm(currents, 0) <= max_ac
 

@@ -3726,8 +3726,8 @@ def _branch_and_bound(init, function, eps, max_k, log_level=20):
     k = 0
     return_val = None
     while True:
-        lb = np.array([n.lb_val for n in active_nodes])
-        ub = np.array([n.ub_val for n in active_nodes])
+        lb = np.array([np.atleast_1d(n.lb_val) for n in active_nodes])
+        ub = np.array([np.atleast_1d(n.ub_val) for n in active_nodes])
         # Prune
         keep = lb <= ub.min()
         keep[ub.argmin()] = True
