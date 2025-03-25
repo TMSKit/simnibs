@@ -8,7 +8,6 @@ import numpy as np
 import nibabel
 import h5py
 import scipy.io
-from scipy.spatial import ConvexHull
 
 from simnibs import SIMNIBSDIR
 from simnibs.mesh_tools import mesh_io
@@ -16,6 +15,7 @@ from simnibs.simulation import sim_struct
 from simnibs.simulation import analytical_solutions
 from simnibs.optimization import opt_struct
 from simnibs.optimization import tdcs_optimization
+from simnibs.segmentation.brain_surface import fibonacci_sphere
 
 NUM_TOL = 1e-8
 
@@ -44,8 +44,7 @@ def leadfield_surf(sphere_surf):
 @pytest.fixture()
 def sphere_surf_real():
     n_dip = 201
-    vertices = analytical_solutions.fibonacci_sphere(n_dip, R=75)
-    faces = ConvexHull(vertices).simplices
+    vertices, faces = fibonacci_sphere(n_dip, radius=75)
     return mesh_io.make_surface_mesh(vertices, faces + 1)
 
 @pytest.fixture()
@@ -1197,8 +1196,11 @@ class TestTDCSDistributedoptimize:
     @pytest.mark.parametrize('max_ac', [None, 3])
     def test_optimize(self, intensity, max_el_c, max_tot_c, max_ac, fn_surf_real):
 
-        rng = np.random.default_rng(1)
-        target_img = rng.random(size=(100,100,100))
+        target_img = np.zeros((10,10,10))
+        target_img[3:5,3:5,7:9] = 1.0
+        target_img[7:9,3:5,3:5] = 1.0
+        target_img = scipy.ndimage.zoom(target_img, 10, order=1)
+
         affine = np.eye(4)
         affine[:3, 3] = -100
         affine[:3, :3] *= 2
@@ -1215,6 +1217,7 @@ class TestTDCSDistributedoptimize:
         )
 
         currents = p.optimize()
+
         assert np.isclose(np.sum(currents), 0, atol=1e-6)
         assert np.max(np.abs(currents)) < max_el_c * 1.05
         assert np.linalg.norm(currents, 1) < 2 * max_tot_c * 1.05
