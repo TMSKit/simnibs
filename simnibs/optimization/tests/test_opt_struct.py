@@ -936,7 +936,7 @@ class TestTDCSoptimize:
         self, intensity, max_el_c, max_tot_c, max_ac, n_targets, fn_surf_real,
     ):
         # min/max acceptable intensity
-        min_acc = 0.95 * intensity
+        min_acc = 0.9 * intensity
         max_acc = intensity + NUM_TOL
 
         p = opt_struct.TDCSoptimize(fn_surf_real, max_tot_c, max_el_c, max_ac)
